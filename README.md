@@ -37,4 +37,6 @@ have a look at the github project:
 Please join us here!
 
 - Twitch: [AnagonLive](https://twitch.tv/anagonlive)
+    - Thursdays 13:30 EST / 19:30 CET (Brussels)
+    - Saturdays 09:00 EST / 15:00 CET (Brussels)
 - Discord: [AnagonLive](https://discord.gg/saYw4Bu)
