@@ -20,6 +20,17 @@ Create a community-built AI (better than Google's) that you can modify and that 
     - possible to write in your programming language of choice
 - Modular
 
+
+## Setup
+
+**Requirements**
+
+- docker
+- python 3.7
+- `pip install -r requirements.txt` 
+- `docker-compose up -d` (to boot Kafka)
+- `python POC.py`
+
 ## Todo's
 
 have a look at the github project:

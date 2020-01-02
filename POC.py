@@ -26,13 +26,15 @@ class Core:
 
         module_consumer = KafkaConsumer(
           TextInput.type,
+          group_id=type(module).__name__,
           bootstrap_servers='127.0.0.1:9092',  # todo extract kafka config
-          auto_offset_reset='earliest',
+          # auto_offset_reset='earliest',
           value_deserializer=json.loads
         )
 
         for message in module_consumer:
           module.handle(message)
+        logging.CRITICAL("MODULE STOPPED")
 
       module_thread = threading.Thread(target=module_runner, daemon=True)
       module_thread.start()
