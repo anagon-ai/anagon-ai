@@ -1,54 +1,29 @@
 import datetime
 import json
 import logging
-import threading
+import kafka
 from dataclasses import dataclass
-
-from kafka import KafkaProducer, KafkaConsumer
 
 
 class Core:
-  def __init__(self, kafka_producer: KafkaProducer):
+  def __init__(self):
     self.modules = []
-    self.kafka_producer = kafka_producer
 
   def add_module(self, module):
     logging.info("Registering: %s" % type(module).__name__)
     self.modules.append(module)
 
   def boot(self):
-    threads = []
     for module in self.modules:
       logging.info("Booting module: %s" % type(module).__name__)
 
-      def module_runner():
-        module.boot(self)
-
-        module_consumer = KafkaConsumer(
-          TextInput.type,
-          group_id=type(module).__name__,
-          bootstrap_servers='127.0.0.1:9092',  # todo extract kafka config
-          # auto_offset_reset='earliest',
-          value_deserializer=json.loads
-        )
-
-        for message in module_consumer:
-          module.handle(message)
-        logging.CRITICAL("MODULE STOPPED")
-
-      module_thread = threading.Thread(target=module_runner, daemon=True)
-      module_thread.start()
-      threads.append(module_thread)
+      module.boot(self)
 
     logging.info("Booted all modules")
 
-    for thread in threads:
-      thread.join()
-
-    logging.info("Shutting down")
-
   def publish(self, message):
-    self.kafka_producer.send(message.type, message.__dict__)
+    for module in self.modules:
+      module.handle(message)
 
 
 @dataclass
@@ -58,6 +33,8 @@ class TextInput:
 
 
 class BaseModule:
+  core: Core
+
   def boot(self, core: Core):
     self.core = core
 
@@ -94,17 +71,26 @@ class HelloWorld(BaseModule):
     print("Modular AI started", flush=True)
 
 
+class KafkaProducer(BaseModule):
+  producer: kafka.KafkaProducer
+
+  def boot(self, core: Core):
+    self.producer = kafka.KafkaProducer(
+      value_serializer=lambda v: json.dumps(v.__dict__).encode('utf-8')
+    )
+
+  def handle(self, message):
+    self.producer.send(message.type, message)
+
+
 if __name__ == '__main__':
   logging.basicConfig(format='%(asctime)s: %(message)s', level=logging.INFO, datefmt='%H:%M:%S')
 
-  producer = KafkaProducer(
-    bootstrap_servers=['127.0.0.1:9092'],
-    value_serializer=lambda v: json.dumps(v).encode('utf-8')
-  )
-  ai = Core(producer)
-  ai.add_module(TextInputModule())
+  ai = Core()
   ai.add_module(TextInputDisplayModule())
   ai.add_module(TimeBot())
   ai.add_module(HelloWorld())
+  ai.add_module(KafkaProducer())
+  ai.add_module(TextInputModule())
 
   ai.boot()
