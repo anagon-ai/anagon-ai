@@ -1,8 +1,11 @@
 import datetime
 import json
 import logging
-import kafka
+import threading
 from dataclasses import dataclass
+from time import sleep
+
+import kafka
 
 
 class Core:
@@ -46,9 +49,14 @@ class TextInputModule(BaseModule):
 
   def boot(self, core: Core):
     super().boot(core)
-    while True:
-      text = input("Input: ")
-      core.publish(TextInput(text=text))
+
+    def input_loop():
+      sleep(0.1)
+      while True:
+        text = input("Input: ")
+        core.publish(TextInput(text=text))
+
+    threading.Thread(target=input_loop).start()
 
   def handle(self, message):
     pass
@@ -90,7 +98,7 @@ if __name__ == '__main__':
   ai.add_module(TextInputDisplayModule())
   ai.add_module(TimeBot())
   ai.add_module(HelloWorld())
-  ai.add_module(KafkaProducer())
+  # ai.add_module(KafkaProducer())
   ai.add_module(TextInputModule())
 
   ai.boot()
