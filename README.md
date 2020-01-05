@@ -39,7 +39,7 @@ have a look at the github project:
 ## How to contribute
 
 - clone the repo
-- make or change a module
+- [make or change a module](docs/modules.md)
 - pull request :-D
 
 

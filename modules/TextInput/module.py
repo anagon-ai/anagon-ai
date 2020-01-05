@@ -8,8 +8,7 @@ from events import TextInput
 
 class TextInputModule(BaseModule):
 
-  def boot(self, core: Core):
-    super().boot(core)
+  def boot(self):
 
     def input_loop():
       sleep(0.1)

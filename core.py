@@ -13,6 +13,7 @@ class Core:
     for module in self.modules:
       logging.info("Booting module: %s" % type(module).__name__)
 
+      module.core = self
       module.boot(self)
 
     logging.info("Booted all modules")
