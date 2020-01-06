@@ -1,11 +1,48 @@
-from core import Core
+from typing import Callable, Any
+
+from events import BaseEvent
+from lib.errors import ModuleError
+from util.developer_help import message_with_example
 
 
 class BaseModule:
-  core: Core
+  def attach(self, publish, subscribe):
+    # override publish and subscribe without losing IDE assistance
+    setattr(self, 'publish', publish)
+    setattr(self, 'subscribe', subscribe)
+
+  def publish(self, message: BaseEvent):
+    raise ModuleError(message_with_example(
+      example="docs/examples/append_module.py",
+      message="""
+    %(class)s was not attached to Core before publishing.
+
+    You cannot boot your module directly (like: %(class)s.boot()).
+    It must instead be added to the AI Core, which is boots the modules for you. 
+
+    """ % {'class': self.__class__.__name__}
+    ))
+
+  def subscribe(self, handler: Callable[[Any], None], types=None):
+    raise ModuleError(message_with_example(
+      example="docs/examples/append_module.py",
+      message="""
+%(class)s was not attached to Core before subscribing.
+
+You cannot boot your module directly (like: %(class)s.boot()).
+It must instead be added to the AI Core, which is boots the modules for you. 
+
+""" % {'class': self.__class__.__name__}
+    ))
 
   def boot(self):
-    pass
+    raise NotImplementedError(message_with_example(
+      example="docs/examples/module_implement_boot.py",
+      params={'ExampleClass': self.__class__.__name__},
+      message="""
+ExampleClass should override the parent boot() method.
+- Either `def booth()` is missing
+- Or `def boot()` is calling the parent method: super().boot().
 
-  def handle(self, message):
-    pass
+Add a boot() method and subscribe to events.
+""", object=self))

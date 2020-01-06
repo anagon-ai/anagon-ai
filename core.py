@@ -1,6 +1,9 @@
 import logging
 from collections import defaultdict
-from typing import List
+from typing import List, Union
+
+from events import BaseEvent
+from lib.errors import CoreNotBootedError, ModulePublishedBadEventError
 
 
 class Core:
@@ -18,31 +21,33 @@ class Core:
   def boot(self):
     for module in self.modules:
       logging.info("Booting module: %s" % type(module).__name__)
-
-      module.core = self
+      module.attach(
+        lambda event: self.publish(event, module),
+        lambda handler, types=None: self._subscribe(module, handler, types))
       module.boot()
 
     self.booted = True
     logging.info("Booted all modules")
 
-  def publish(self, message):
+  def publish(self, event: BaseEvent, module=None):
     if not self.booted:
-      raise CoreException("AI has not been booted yet. Please run Core.boot() before publishing.")
+      raise CoreNotBootedError()
 
-    for handler in self.handlers[message.type]:
-      handler(message)
+    if not isinstance(event, BaseEvent):
+      raise ModulePublishedBadEventError(module=module, event=event)
+
+    for handler in self.handlers[event.type]:
+      handler(event)
 
     for handler in self.handlers[None]:
-      handler(message)
+      handler(event)
 
-  def subscribe(self, handler, types=None):
+  """Internal: Attaches a module's event handler to all types or a specific set of types"""
+
+  def _subscribe(self, module, handler, types: Union[str, List[str], None] = None):
     # todo: permission check
     if type(types) != list:
       types = [types]
 
     for _type in types:
       self.handlers[_type].append(handler)
-
-
-class CoreException(Exception):
-  pass
