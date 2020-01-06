@@ -14,9 +14,6 @@ class TextInputModule(BaseModule):
       sleep(0.1)
       while True:
         text = input("Input: ")
-        core.publish(TextInput(text=text))
+        self.core.publish(TextInput(text=text))
 
     threading.Thread(target=input_loop).start()
-
-  def handle(self, message):
-    pass
