@@ -38,9 +38,9 @@ class MyAwesomeModule(BaseModule):
 Within boot, you can subscribe to single, multiple or all event types:
 
 ```python
-      self.subscribe(TextInput, self.handle_single_event)
+      self.subscribe(self.handle_single_event, TextInput)
       
-      self.subscribe([TextInput, TextOutput], self.handle_multiple_events)
+      self.subscribe(self.handle_multiple_events, [TextInput, TextOutput])
       
       self.subscribe(self.handle_all_events)
 ```
