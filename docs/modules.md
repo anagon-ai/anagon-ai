@@ -35,7 +35,7 @@ class MyAwesomeModule(BaseModule):
     def boot(self):
 ```
 
-Within boot, you can subscribe to single, multiple or all event types:
+Within boot, you can **subscribe** to single, multiple or all event types:
 
 ```python
       self.subscribe(self.handle_single_event, TextInput)
@@ -45,7 +45,7 @@ Within boot, you can subscribe to single, multiple or all event types:
       self.subscribe(self.handle_all_events)
 ```
 
-Inside the handlers, you can react to incoming events, for example by publishing another event:
+Inside the handlers, you can react to incoming events, for example by **publishing** another [event](events.md):
 
 ```python
     def handle_single_event(self, event: TextInput):
