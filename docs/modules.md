@@ -16,7 +16,7 @@ You can easily extend the AI by creating your own module.
 
    ```python
    ai = Core()
-   ai.add_module(TextInputModule())  # add this line
+   ai.add_module(MyAwesomeModule())  # add this line
    ai.boot()
    ```
 4. Run it!  
