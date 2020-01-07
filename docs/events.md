@@ -1,34 +1,18 @@
 # Events
 
 
-## Core Events
+## TextInput
 
----
 
-### TextInput
-
-type=`be.anagon.ai.poc.text.input`
+- type=`be.anagon.ai.poc.text.input`
+- text: str
 
 Event triggered by a input typed by the user into the console.
 
-#### fields
 
+## TextOutput
+
+- type=`be.anagon.ai.poc.text.output`
 - text: str
-
-
----
-
-### TextOutput
-
-type=`be.anagon.ai.poc.text.output`
 
 Event that triggers the content of text to be shown in the terminal.
-
-#### fields
-
-- text: str
-
-
-
-
-## Module Defined Events

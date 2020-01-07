@@ -45,7 +45,7 @@ Methods:
 
 Simple bot that writes all incoming events to a file:
 
-> notice the functions of `__init__`, `boot` and `handler`
+- notice the functions of `__init__`, `boot` and `handler`
 
 ```python
 import typing
@@ -72,7 +72,8 @@ class EventLoggingBot(BaseModule):
 ### TimeBot
 
 Bot that prints the time when you say the word `time`:
-> notice the usage of `self.publish(TextOutput(...))` to print something to the screen
+
+- notice the usage of `self.publish(TextOutput(...))` to print something to the screen, which is handled by another Module.
 
 ```python
 import datetime
