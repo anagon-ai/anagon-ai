@@ -3,23 +3,26 @@
 Anagon AI is built out of independent modules.
 You can easily extend the AI by creating your own module.
 
-To do this:
+## Creating a module
 
-- create a folder with your module name inside `modules`, with a file called `module.py` in it.
-  e.g.: `modules/GreetingBot/module.py`
-- in `module.py`, create a class that extends `BaseModule` and implements the `boot` method. See below
-- Load your module within start.py
+1. Generate a template module
+   ```bash
+   python create_module.py MyAwesomeModule
+   ```
+2. Edit the module   
+   > `modules/MyAwesomeModule/module.py`  
+   > Check out some examples below
+3. Add your module to `start.py`
 
-  ```python
-  
-  ai = Core()
-  ai.add_module(GreetingBot())
-  ai.add_module(TextInputModule())
-
-  ai.boot()
-  ```
-- Run start.py  
-  `python start.py`
+   ```python
+   ai = Core()
+   ai.add_module(TextInputModule())  # add this line
+   ai.boot()
+   ```
+4. Run it!  
+   ```bash
+   python start.py
+   ```
 ## Module class
 
 Modules consist of a class extending BaseModule, with an overwritten boot method.
@@ -33,9 +36,16 @@ Methods:
 - `self.subscribe(handler, types)` &mdash; react to incoming events by subscribing your handlers to specific types.
 - `self.publish(event)` &mdash; publish an [Event](events.md) from your module, so other modules can react to it.
 
-### Example
- 
-Simple bot that writes all incoming events to a file.
+## Examples
+
+> Also check out the included modules in `modules/` to get some inspiration. 
+
+
+### EventLoggingBot
+
+Simple bot that writes all incoming events to a file:
+
+> notice the functions of `__init__`, `boot` and `handler`
 
 ```python
 import typing
@@ -59,4 +69,35 @@ class EventLoggingBot(BaseModule):
     self.file.flush()
 ```
 
-See above how to add the module to the AI.
+### TimeBot
+
+Bot that prints the time when you say the word `time`:
+> notice the usage of `self.publish(TextOutput(...))` to print something to the screen
+
+```python
+import datetime
+
+from modules.BaseModule import BaseModule
+from core.events import TextInput, TextOutput
+
+
+class TimeBot(BaseModule):
+
+  def boot(self):
+    self.subscribe(self.handle, types=TextInput)
+
+  def handle(self, message: TextInput):
+    if message.text.find('time') > -1:
+      self.publish(TextOutput(text='The time is: %s' % datetime.datetime.now().strftime('%H:%M:%S')))
+```
+
+
+### ReminderBot
+
+Bot that reminds you of tasks in the future.
+
+```python
+
+# todo
+
+```
