@@ -25,9 +25,39 @@ You can easily extend the AI by creating your own module.
    ```
 ## Module class
 
-Modules consist of a class extending BaseModule, with an overwritten boot method.
+Modules consist of a class extending `BaseModule`, with an overwritten `boot()` method:
 
-Within boot, you can subscribe to single, multiple or all event types.
+
+```python
+from modules import BaseModule
+
+class MyAwesomeModule(BaseModule):
+    def boot(self):
+```
+
+Within boot, you can subscribe to single, multiple or all event types:
+
+```python
+      self.subscribe(TextInput, self.handle_single_event)
+      
+      self.subscribe([TextInput, TextOutput], self.handle_multiple_events)
+      
+      self.subscribe(self.handle_all_events)
+```
+
+Inside the handlers, you can react to incoming events, for example by publishing another event:
+
+```python
+    def handle_single_event(self, event: TextInput):
+      self.publish(TextOutput("I've received an input event!")
+    
+    def handle_multiple(self, event: Union[TextInput, TextOutput]):
+      pass
+    
+    def handle_all_events(self, event: BaseEvent):
+      pass
+```
+
 
 Methods:
 
