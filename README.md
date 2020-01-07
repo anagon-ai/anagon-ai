@@ -1,13 +1,13 @@
-# :robot: Anagon AI
+# Anagon AI
 
 Open source modular AI for everyone.
 
-### :blue_book: Tutorials
+## :blue_book: Tutorials
 
 - Modules &mdash; [How to make a module](docs/modules.md)
 - Events &mdash; [List of Events](docs/events.md)
 
-### :rocket: Quick Start
+## :rocket: Quick Start
 
 1. Install python and dependencies
     - python 3.7
@@ -26,7 +26,7 @@ Open source modular AI for everyone.
 
 ## :dart: Mission statement
 
-Create a community-built personal assistant that you can modify and that respects your privacy.
+> Create a community-built personal assistant that you can modify and that respects your privacy.
 
 **Design Goals**
 
@@ -45,8 +45,7 @@ Create a community-built personal assistant that you can modify and that respect
 
 ## Todo's
 
-have a look at the github project:
-- https://github.com/boukeversteegh/anagon-ai/projects
+*Have a look at the [Github Project](https://github.com/boukeversteegh/anagon-ai/projects)*
 
 ## How to contribute
 
