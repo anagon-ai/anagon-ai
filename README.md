@@ -43,18 +43,18 @@ Open source modular AI for everyone.
 - Modular
 
 
-## Todo's
+## :clipboard: Todo's
 
 *Have a look at the [Github Project](https://github.com/boukeversteegh/anagon-ai/projects)*
 
-## How to contribute
+## :muscle: How to contribute
 
 - clone the repo
 - create your own module: [Modules](docs/modules.md)
 - pull request :-D
 
 
-## Community
+## :busts_in_silhouette: Community
 
 Please join us here!
 
