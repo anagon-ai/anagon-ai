@@ -5,7 +5,7 @@ from core.events import TextInput, TextOutput
 from modules.BaseModule import BaseModule
 
 
-class CommandLineModule(BaseModule):
+class ConsoleModule(BaseModule):
 
   def boot(self):
     def input_loop():

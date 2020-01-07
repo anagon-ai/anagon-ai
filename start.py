@@ -14,6 +14,6 @@ if __name__ == '__main__':
   ai.add_module(TimeBot())
   ai.add_module(EventLoggingBot('ai.log'))
   # ai.add_module(KafkaProducer())
-  ai.add_module(CommandLineModule())
+  ai.add_module(ConsoleModule())
 
   ai.boot()

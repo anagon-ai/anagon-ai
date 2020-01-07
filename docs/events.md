@@ -1,18 +1,45 @@
 # Events
 
 
-## TextInput
+## Creating Events
+
+In your `module.py` file, create a class that extends [BaseEvent](../core/events.py).
 
 
-- type=`be.anagon.ai.poc.text.input`
-- text: str
+```python
+from dataclasses import dataclass
+from core.events import BaseEvent
+from datetime import date, time
 
-Event triggered by a input typed by the user into the console.
+@dataclass
+class ExampleCalendarEvent(BaseEvent):
+  type = 'com.mywebsite.anagon.ai.calendar.event.started'
+  title: str
+  start_date: date
+  start_time: time
+  end_date: date
+  end_time: time
+```
+
+## Publishing Events
+
+> todo 
+
+## Core Events
+
+### TextInput
+
+User has typed some text into the console.
+Provided by [ConsoleModule](../modules/ConsoleModule/module.py).
+
+- type = `be.anagon.ai.poc.text.input`
+- text: str &mdash; content of the input
 
 
-## TextOutput
+### TextOutput
 
-- type=`be.anagon.ai.poc.text.output`
-- text: str
+Publish this event to print text to the console.
+Handled by [ConsoleModule](../modules/ConsoleModule/module.py).
 
-Event that triggers the content of text to be shown in the terminal.
+- type = `be.anagon.ai.poc.text.output`
+- text: str &mdash; content to be printed
