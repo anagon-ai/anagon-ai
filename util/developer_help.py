@@ -18,7 +18,8 @@ def message_with_example(message, example, params={}, object=None):
     output = output.replace(k, params[k])
 
   if object:
-    lines, line_no = inspect.getsourcelines(object.__class__)
-    output += '\n\nSee: \033[94mfile://%s:%s\033[0m' % (inspect.getfile(object.__class__), line_no)
+    object_class = object if inspect.isclass(object) else object.__class__
+    lines, line_no = inspect.getsourcelines(object_class)
+    output += '\n\nSee: \033[94mfile://%s:%s\033[0m' % (inspect.getfile(object_class), line_no)
 
   return output

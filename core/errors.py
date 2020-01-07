@@ -36,3 +36,43 @@ For a list of event types you can publish, see:
         'ExampleModule': module.__class__.__name__
       }
     ))
+
+
+class ModuleSubscribedToNonClassError(ModuleError):
+
+  def __init__(self, module, event) -> None:
+    super().__init__(message_with_example(
+      message=
+      """ExampleModule is subscribing to an event of type `%(type)s` instead of a child-class of `BaseEvent`.
+
+For a list of event types you can subscribe to, see:
+  - https://github.com/anagon-ai/anagon-ai/blob/master/docs/events.md
+""" % {
+        'type': type(event).__name__
+      },
+      example='docs/examples/module_subscribe_event_not_class.py',
+      object=module,
+      params={
+        'ExampleModule': module.__class__.__name__,
+        'TextInput': '\033[4;38;5;82m%s\033[0m' % 'TextInput',
+        '\'EventAsString\'': '\033[4;38;5;196m%s\033[0m' % repr(event)
+      }
+    ))
+
+
+class ModuleSubscribedToNonEventClassError(ModuleError):
+
+  def __init__(self, module, event) -> None:
+    super().__init__(message_with_example(
+      message=
+      "ExampleEvent is not a valid event, because it does not extend `BaseEvent`." % {
+        'type': type(event).__name__
+      },
+      example='docs/examples/module_subscribe_event_not_event_class.py',
+      object=event,
+      params={
+        'ExampleModule': module.__class__.__name__,
+        'ExampleEvent': event.__name__,
+        'BaseEvent': '\033[1;31;4mBaseEvent\033[0m'
+      }
+    ))

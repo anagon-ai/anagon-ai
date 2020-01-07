@@ -16,7 +16,7 @@ class CommandLineModule(BaseModule):
 
     threading.Thread(target=input_loop).start()
 
-    self.subscribe(types=TextOutput.type, handler=self.output)
+    self.subscribe(handler=self.output, types=TextOutput)
 
   def output(self, event: TextOutput):
     print(event.text)

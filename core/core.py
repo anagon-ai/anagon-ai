@@ -1,9 +1,11 @@
 import logging
 from collections import defaultdict
+from inspect import isclass
 from typing import List, Union
 
 from core.events import BaseEvent
-from core.errors import CoreNotBootedError, ModulePublishedBadEventError
+from core.errors import CoreNotBootedError, ModulePublishedBadEventError, ModuleSubscribedToNonClassError, \
+  ModuleSubscribedToNonEventClassError
 
 
 class Core:
@@ -42,12 +44,22 @@ class Core:
     for handler in self.handlers[None]:
       handler(event)
 
-  """Internal: Attaches a module's event handler to all types or a specific set of types"""
+  def _subscribe(self, module, handler, types: Union[str, BaseEvent, List[str], List[BaseEvent], None] = None):
+    """Internal: Attaches a module's event handler to all types or a specific set of types"""
 
-  def _subscribe(self, module, handler, types: Union[str, List[str], None] = None):
     # todo: permission check
+    if module:
+      pass
+
     if type(types) != list:
       types = [types]
 
     for _type in types:
+      if isclass(_type):
+        if issubclass(_type, BaseEvent):
+          _type = _type.type
+        else:
+          raise ModuleSubscribedToNonEventClassError(event=_type, module=module)
+      elif _type != None:
+        raise ModuleSubscribedToNonClassError(event=_type, module=module)
       self.handlers[_type].append(handler)

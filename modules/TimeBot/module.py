@@ -7,7 +7,7 @@ from core.events import TextInput, TextOutput
 class TimeBot(BaseModule):
 
   def boot(self):
-    self.subscribe(handler=self.handle, types=TextInput.type)
+    self.subscribe(self.handle, types=TextInput)
 
   def handle(self, message: TextInput):
     if message.text.find('time') > -1:

@@ -2,8 +2,9 @@ import unittest
 from dataclasses import dataclass
 
 from core.core import Core
+from core.errors import CoreNotBootedError, ModulePublishedBadEventError, ModuleSubscribedToNonClassError, \
+  ModuleSubscribedToNonEventClassError
 from core.events import BaseEvent
-from core.errors import CoreNotBootedError, ModulePublishedBadEventError
 from modules.BaseModule import BaseModule
 
 
@@ -23,7 +24,7 @@ class AEventsModule(BaseModule):
   received_events = []
 
   def boot(self):
-    self.subscribe(self.handle_a, types=EventTypeA.type)
+    self.subscribe(self.handle_a, types=EventTypeA)
 
   def handle_a(self, event: EventTypeA):
     self.received_events.append(event.content)
@@ -66,7 +67,7 @@ class CoreTests(unittest.TestCase):
 
     self.assertEqual(['a', 'b'], module.received_events)
 
-  def test_publishing_non_event(self):
+  def test_publishing_non_class(self):
     class BadPublisher(BaseModule):
 
       def boot(self):
@@ -79,3 +80,27 @@ class CoreTests(unittest.TestCase):
     ai.boot()
 
     self.assertRaises(ModulePublishedBadEventError, lambda: module.publish("not an event"))
+
+  def test_subscribing_non_class(self):
+    class BadSubscriber(BaseModule):
+      def boot(self):
+        self.subscribe(lambda: None, types='MyEvent')
+
+    ai = Core()
+    module = BadSubscriber()
+    ai.add_module(module)
+    self.assertRaises(ModuleSubscribedToNonClassError, lambda: ai.boot())
+
+  def test_subscribing_non_event_class(self):
+    class FakeEvent:
+      pass
+
+    class BadSubscriber(BaseModule):
+      def boot(self):
+        self.subscribe(lambda: None, types=FakeEvent)
+
+    ai = Core()
+    module = BadSubscriber()
+    ai.add_module(module)
+
+    self.assertRaises(ModuleSubscribedToNonEventClassError, lambda: ai.boot())
