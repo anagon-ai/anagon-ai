@@ -1,9 +1,9 @@
 import unittest
 from dataclasses import dataclass
 
-from core import Core
-from events import BaseEvent
-from lib.errors import CoreNotBootedError, ModulePublishedBadEventError
+from core.core import Core
+from core.events import BaseEvent
+from core.errors import CoreNotBootedError, ModulePublishedBadEventError
 from modules.BaseModule import BaseModule
 
 

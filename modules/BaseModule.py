@@ -1,7 +1,7 @@
 from typing import Callable, Any
 
-from events import BaseEvent
-from lib.errors import ModuleError
+from core.events import BaseEvent
+from core.errors import ModuleError
 from util.developer_help import message_with_example
 
 

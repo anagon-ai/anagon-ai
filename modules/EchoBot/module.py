@@ -1,4 +1,4 @@
-from events import TextInput, TextOutput
+from core.events import TextInput, TextOutput
 from modules.BaseModule import BaseModule
 
 

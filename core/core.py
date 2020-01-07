@@ -2,8 +2,8 @@ import logging
 from collections import defaultdict
 from typing import List, Union
 
-from events import BaseEvent
-from lib.errors import CoreNotBootedError, ModulePublishedBadEventError
+from core.events import BaseEvent
+from core.errors import CoreNotBootedError, ModulePublishedBadEventError
 
 
 class Core:

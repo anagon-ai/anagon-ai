@@ -1,7 +1,7 @@
 import datetime
 
 from modules.BaseModule import BaseModule
-from events import TextInput, TextOutput
+from core.events import TextInput, TextOutput
 
 
 class TimeBot(BaseModule):

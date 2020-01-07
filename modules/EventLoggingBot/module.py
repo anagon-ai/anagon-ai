@@ -1,6 +1,6 @@
 import typing
 
-from events import BaseEvent
+from core.events import BaseEvent
 from modules.BaseModule import BaseModule
 
 

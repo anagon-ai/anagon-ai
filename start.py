@@ -1,6 +1,6 @@
 import logging
 
-from core import Core
+from core.core import Core
 from modules.EchoBot.module import EchoBot
 from modules.EventLoggingBot.module import EventLoggingBot
 from modules.TimeBot.module import TimeBot

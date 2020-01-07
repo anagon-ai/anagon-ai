@@ -1,10 +1,32 @@
-# Anagon AI
+# :robot: Anagon AI
 
-Open source modular AI for everyone
+Open source modular AI for everyone.
 
-**Mission statement**
+### :blue_book: Tutorials
 
-Create a community-built AI (better than Google's) that you can modify and that respects your privacy.
+- Modules &mdash; [How to make a module](docs/modules.md)
+- Events &mdash; [List of Events](docs/events.md)
+
+### :rocket: Quick Start
+
+1. Install python and dependencies
+    - python 3.7
+    - `pip install -r requirements.txt` 
+
+2. Run the AI
+    
+    ```bash
+    python start.py
+    ```
+
+    Type:
+    > what is the time?
+3. Edit `start.py` to customize your AI.
+4. [Make your own module](docs/modules.md) :smile:!
+
+## :dart: Mission statement
+
+Create a community-built personal assistant that you can modify and that respects your privacy.
 
 **Design Goals**
 
@@ -21,16 +43,6 @@ Create a community-built AI (better than Google's) that you can modify and that 
 - Modular
 
 
-## Setup
-
-**Requirements**
-
-- docker
-- python 3.7
-- `pip install -r requirements.txt` 
-- `docker-compose up -d` (to boot Kafka)
-- `python POC.py`
-
 ## Todo's
 
 have a look at the github project:
@@ -39,7 +51,7 @@ have a look at the github project:
 ## How to contribute
 
 - clone the repo
-- make or change a module &mdash; see: [Modules](docs/modules.md)
+- create your own module: [Modules](docs/modules.md)
 - pull request :-D
 
 
@@ -48,6 +60,6 @@ have a look at the github project:
 Please join us here!
 
 - Twitch: [AnagonLive](https://twitch.tv/anagonlive)
-    - Thursdays 13:30 EST / 19:30 CET (Brussels)
-    - Saturdays 09:00 EST / 15:00 CET (Brussels)
+    - Thursdays &mdash; Afternoon (USA/CA) / Evening (Brussels)
+    - Sundays &mdash; Afternoon (USA/CA) / Evening (Brussels)
 - Discord: [AnagonLive](https://discord.gg/saYw4Bu)
