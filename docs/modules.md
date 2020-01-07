@@ -7,9 +7,7 @@ To do this:
 
 - create a folder with your module name inside `modules`, with a file called `module.py` in it.
   e.g.: `modules/GreetingBot/module.py`
-- in `module.py`, create a class that extends `BaseModule`  
-        
-  ```
+- in `module.py`, create a class that extends `BaseModule` and implements the `boot` method. See below
 - Load your module within start.py
 
   ```python
