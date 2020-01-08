@@ -104,3 +104,12 @@ class CoreTests(unittest.TestCase):
     ai.add_module(module)
 
     self.assertRaises(ModuleSubscribedToNonEventClassError, lambda: ai.boot())
+
+  def test_event_dict(self):
+    @dataclass
+    class TestEvent(BaseEvent):
+      type = 'foo'  # overwritten
+      attr = 'bar'  # class attribute
+      text: str
+
+    self.assertEqual({'type': 'foo', 'attr': 'bar', 'text': 'hello'}, TestEvent('hello').as_dict)
