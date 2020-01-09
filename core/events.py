@@ -1,7 +1,9 @@
+from abc import ABC
 from dataclasses import dataclass
 
+
 @dataclass
-class BaseEvent:
+class BaseEvent(ABC):
   @property
   def type(self):
     raise NotImplementedError

@@ -1,7 +1,8 @@
-from typing import Callable, Any
+from typing import Any, Callable, List, Type, Union
 
-from core.events import BaseEvent
 from core.errors import ModuleError
+from core.events import BaseEvent
+from core.messaging import Metadata
 from util.developer_help import message_with_example
 
 
@@ -21,9 +22,10 @@ class BaseModule:
     It must instead be added to the AI Core, which is boots the modules for you. 
 
     """ % {'class': self.__class__.__name__}
-    ))
+      ))
 
-  def subscribe(self, handler: Callable[[Any], None], types=None):
+  def subscribe(self, handler: Callable[[Any, Metadata], None],
+                types: Union[List[Type[BaseEvent]], Type[BaseEvent]] = None):
     raise ModuleError(message_with_example(
       example="docs/examples/append_module.py",
       message="""
@@ -33,7 +35,7 @@ You cannot boot your module directly (like: %(class)s.boot()).
 It must instead be added to the AI Core, which is boots the modules for you. 
 
 """ % {'class': self.__class__.__name__}
-    ))
+      ))
 
   def boot(self):
     raise NotImplementedError(message_with_example(

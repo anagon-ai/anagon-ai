@@ -1,6 +1,7 @@
 import typing
 
 from core.events import BaseEvent, TextInput, TextOutput
+from core.messaging import Metadata
 from modules.BaseModule import BaseModule
 
 
@@ -16,9 +17,10 @@ class TemplateModule(BaseModule):
     self.subscribe(self.handle_text_input, TextInput)             # subscribe to TextInput only
     self.subscribe(self.handle_text_io, [TextInput, TextOutput])  # subscribe to two Event Types
 
-  def handler(self, event: BaseEvent):
+  def handler(self, event: BaseEvent, metadata: Metadata):
     if isinstance(event, TextInput):
-      print("Text input received: %s" % event.text)
+      event: TextInput
+      print("TextInput with id %(id)s received: %(text)s" % dict(text=event.text, id=metadata.id))
 
   def handle_text_input(self, event: TextInput):
     self.publish(TextOutput("You said: %s" % event.text))
