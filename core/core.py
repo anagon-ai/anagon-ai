@@ -1,20 +1,25 @@
+import inspect
 import logging
 from collections import defaultdict
 from inspect import isclass
-from typing import List, Union
+from typing import Callable, Dict, List, Union
+from uuid import uuid4
 
-from core.events import BaseEvent
 from core.errors import CoreNotBootedError, ModulePublishedBadEventError, ModuleSubscribedToNonClassError, \
   ModuleSubscribedToNonEventClassError
+from core.events import BaseEvent
+from core.messaging import Metadata
 
 
 class Core:
   modules: List
-  handlers: List = defaultdict(list)
+  handlers: Dict[Union[None, str], List[Callable[[BaseEvent, Metadata], None]]] = defaultdict(list)
+  metadata_provider: Callable[[], Metadata]
 
-  def __init__(self):
+  def __init__(self, metadata_provider: Callable[[], Metadata] = lambda: Metadata(id=uuid4())):
     self.modules = []
     self.booted = False
+    self.metadata_provider = metadata_provider
 
   def add_module(self, module):
     logging.info("Registering: %s" % type(module).__name__)
@@ -38,11 +43,15 @@ class Core:
     if not isinstance(event, BaseEvent):
       raise ModulePublishedBadEventError(module=module, event=event)
 
-    for handler in self.handlers[event.type]:
-      handler(event)
+    metadata = self.metadata_provider()
+    for handler in self.handlers[event.type] + self.handlers[None]:
 
-    for handler in self.handlers[None]:
-      handler(event)
+      # 'intelligently' pass arguments to handler depending on specified arguments
+      (handler_args_spec, *_) = inspect.getfullargspec(handler)
+
+      handler_args = {'event': event, 'metadata': metadata}
+
+      handler(**{key: value for key, value in handler_args.items() if key in handler_args_spec})
 
   def _subscribe(self, module, handler, types: Union[str, BaseEvent, List[str], List[BaseEvent], None] = None):
     """Internal: Attaches a module's event handler to all types or a specific set of types"""

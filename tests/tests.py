@@ -1,11 +1,15 @@
 import unittest
 from dataclasses import dataclass
+from uuid import UUID
 
 from core.core import Core
 from core.errors import CoreNotBootedError, ModulePublishedBadEventError, ModuleSubscribedToNonClassError, \
   ModuleSubscribedToNonEventClassError
 from core.events import BaseEvent
+from core.messaging import Metadata
 from modules.BaseModule import BaseModule
+
+test_uuid = UUID('24415436-3319-11ea-964d-88e9fe73dff3')
 
 
 @dataclass
@@ -20,14 +24,10 @@ class EventTypeB(BaseEvent):
   type = 'be.anagon.ai.core.poc.b'
 
 
-class AEventsModule(BaseModule):
-  received_events = []
-
-  def boot(self):
-    self.subscribe(self.handle_a, types=EventTypeA)
-
-  def handle_a(self, event: EventTypeA):
-    self.received_events.append(event.content)
+@dataclass
+class TestEvent(BaseEvent):
+  type = 'be.anagon.ai.test.event'
+  content: str
 
 class AllEventsModule(BaseModule):
   received_events = []
@@ -44,6 +44,15 @@ class CoreTests(unittest.TestCase):
     self.assertRaises(CoreNotBootedError, lambda: ai.publish(EventTypeA(content="a")))
 
   def test_module_receives_only_events_it_subscribed_to(self):
+    class AEventsModule(BaseModule):
+      received_events = []
+
+      def boot(self):
+        self.subscribe(self.handle_a, types=EventTypeA)
+
+      def handle_a(self, event: EventTypeA):
+        self.received_events.append(event.content)
+
     ai = Core()
     foobar = AEventsModule()
     ai.add_module(foobar)
@@ -113,3 +122,38 @@ class CoreTests(unittest.TestCase):
       text: str
 
     self.assertEqual({'type': 'foo', 'attr': 'bar', 'text': 'hello'}, TestEvent('hello').as_dict)
+
+  def test_handle_metadata(self):
+    received_ids = []
+
+    class MetadataModule(BaseModule):
+      def boot(self):
+        self.subscribe(self.handler)
+
+      def handler(self, event: BaseEvent, metadata: Metadata):
+        received_ids.append(metadata.id)
+
+    ai = Core(metadata_provider=lambda: Metadata(id=test_uuid))
+    ai.add_module(MetadataModule())
+    ai.boot()
+
+    ai.publish(TestEvent('hello'))
+
+    self.assertEqual([test_uuid], received_ids)
+
+  def test_metadata_id_is_same_for_all_handlers(self):
+    received_ids = []
+
+    class MetadataModule(BaseModule):
+      def boot(self):
+        self.subscribe(lambda metadata: received_ids.append(metadata.id))
+        self.subscribe(lambda metadata: received_ids.append(metadata.id))
+
+    ai = Core()
+    ai.add_module(MetadataModule())
+    ai.boot()
+
+    ai.publish(TestEvent('hello'))
+
+    self.assertEqual(2, len(received_ids))
+    self.assertEqual(received_ids[0], received_ids[1])
