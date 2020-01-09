@@ -11,6 +11,7 @@ class BaseModule:
     # override publish and subscribe without losing IDE assistance
     setattr(self, 'publish', publish)
     setattr(self, 'subscribe', subscribe)
+    pass
 
   def publish(self, message: BaseEvent):
     raise ModuleError(message_with_example(

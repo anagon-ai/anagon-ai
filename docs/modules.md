@@ -33,6 +33,7 @@ from modules import BaseModule
 
 class MyAwesomeModule(BaseModule):
     def boot(self):
+      ...
 ```
 
 Within boot, you can **subscribe** to single, multiple or all event types:
@@ -53,8 +54,12 @@ Inside the handlers, you can react to incoming events, for example by **publishi
     
     def handle_multiple(self, event: Union[TextInput, TextOutput]):
       pass
-    
-    def handle_all_events(self, event: BaseEvent):
+```
+
+Add the `metadata` argument to access the event's `id` and other [Metadata](metadata.md) 
+
+```python
+    def handle_all_events(self, event: BaseEvent, metadata: Metadata):
       pass
 ```
 
