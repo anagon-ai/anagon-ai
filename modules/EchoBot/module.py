@@ -7,5 +7,5 @@ class EchoBot(BaseModule):
   def boot(self):
     self.subscribe(handler=self.handle, types=TextInput)
 
-  def handle(self, message: TextInput):
-    self.publish(TextOutput(text="You wrote: %s" % message.text))
+  def handle(self, event: TextInput):
+    self.publish(TextOutput(text="You wrote: %s" % event.text))

@@ -1,21 +1,33 @@
-from abc import ABC
 from dataclasses import dataclass
+from typing import Any, Dict
+
+from typing_extensions import TypedDict
+
+BaseEventDict = TypedDict('BaseEventDict', {'type': str}, total=False)
 
 
 @dataclass
-class BaseEvent(ABC):
+class BaseEvent:
   @property
-  def type(self):
+  def type(self) -> str:
     raise NotImplementedError
 
   @property
-  def as_dict(self):
-    event_dict = {**self.__dict__}
-    for attr in dir(self):
-      if not attr.startswith('__') and attr != 'as_dict':
-        event_dict[attr] = getattr(self, attr)
-    return event_dict
+  def __static_attributes__(self) -> Dict[str, Any]:
+    return {
+        attr: getattr(self, attr)
+        for attr in dir(self)
+        if not attr.startswith('_') and attr not in ['dict'] and attr not in self.__dict__
+        }
 
+  def __getstate__(self) -> Dict[str, Any]:
+    state = self.__dict__.copy()
+    state.update(self.__static_attributes__)
+    return state
+
+  @property
+  def dict(self) -> Dict[str, Any]:
+    return self.__getstate__()
 
 @dataclass
 class TextInput(BaseEvent):

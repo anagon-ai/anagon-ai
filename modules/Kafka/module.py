@@ -14,5 +14,5 @@ class KafkaProducer(BaseModule):
     )
     self.subscribe(self.handle)
 
-  def handle(self, message):
-    self.producer.send(message.type, message)
+  def handle(self, event):
+    self.producer.send(event.type, event)

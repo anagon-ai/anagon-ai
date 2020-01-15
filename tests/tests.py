@@ -2,9 +2,11 @@ import unittest
 from dataclasses import dataclass
 from uuid import UUID
 
+from jsonpickle import Pickler
+
 from core.core import Core
 from core.errors import CoreNotBootedError, ModulePublishedBadEventError, ModuleSubscribedToNonClassError, \
-  ModuleSubscribedToNonEventClassError
+  ModuleSubscribedToNonEventClassError, ModuleError
 from core.events import BaseEvent
 from core.messaging import Metadata
 from modules.BaseModule import BaseModule
@@ -121,7 +123,7 @@ class CoreTests(unittest.TestCase):
       attr = 'bar'  # class attribute
       text: str
 
-    self.assertEqual({'type': 'foo', 'attr': 'bar', 'text': 'hello'}, TestEvent('hello').as_dict)
+    self.assertEqual({'type': 'foo', 'attr': 'bar', 'text': 'hello'}, TestEvent('hello').dict)
 
   def test_handle_metadata(self):
     received_ids = []
@@ -157,3 +159,29 @@ class CoreTests(unittest.TestCase):
 
     self.assertEqual(2, len(received_ids))
     self.assertEqual(received_ids[0], received_ids[1])
+
+  def test_handler_arguments(self):
+    class FooModule(BaseModule):
+      def boot(self):
+        self.subscribe(self.handle)
+
+      def handle(self, message):
+        pass
+
+    ai = Core()
+    ai.add_module(FooModule())
+
+    self.assertRaises(ModuleError, lambda: ai.boot())
+
+  def test_pickle_json_includes_class_attributes(self):
+    @dataclass
+    class TestEventClassAttributes(BaseEvent):
+      type = 'ai.anagon.base'
+      sub_type = 'ai.anagon.child'
+      content: str
+
+    self.assertEqual({
+        'type': 'ai.anagon.base',
+        'sub_type': 'ai.anagon.child',
+        'content': 'test',
+      }, Pickler(unpicklable=False).flatten(TestEventClassAttributes("test")))
