@@ -66,7 +66,7 @@ Add the `metadata` argument to access the event's `id` and other [Metadata](meta
 
 Methods:
 
-- `def boot()` &mdash; method you need to define to initialize your module.
+- `def boot(self)` &mdash; method you need to define to initialize your module.
 - `def handle[...](event)` &mdash; the module's event handler(s), registered in `boot()`. Defined by you.
 - `self.subscribe(handler, types)` &mdash; react to incoming events by subscribing your handlers to specific types.
 - `self.publish(event)` &mdash; publish an [Event](events.md) from your module, so other modules can react to it.
