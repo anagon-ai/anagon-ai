@@ -2,3 +2,4 @@ dataclasses-json
 typeguard
 mypy
 jsonpickle
+inflection
