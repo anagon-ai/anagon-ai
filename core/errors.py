@@ -1,3 +1,5 @@
+from typing import Callable
+
 from util.developer_help import message_with_example
 
 
@@ -74,5 +76,27 @@ class ModuleSubscribedToNonEventClassError(ModuleError):
         'ExampleModule': module.__class__.__name__,
         'ExampleEvent': event.__name__,
         'BaseEvent': '\033[1;31;4mBaseEvent\033[0m'
+      }
+    ))
+
+def bad(text):
+  return '\033[1;31;4m%s\033[0m' % text
+
+def good(text):
+  return '%s' % text
+
+class ModuleSubscribeEventNotMatchingHandlerError(ModuleError):
+
+  def __init__(self, module, handler: Callable, event) -> None:
+    super().__init__(message_with_example(
+      message=
+      "ExampleModule subscribes to SubscribedEvent,\n  but its ModuleWithTypeMismatch.ExampleHandler() expects a type ExpectedEvent .",
+      example='docs/examples/module_subscribe_event_not_matching_handler.py',
+      # object=handler,
+      params={
+        'ExampleModule': module.__class__.__name__,
+        'SubscribedEvent': bad(event.__name__),
+        'ExpectedEvent': bad(handler.__annotations__['event'].__name__),
+        'ExampleHandler': handler.__name__,
       }
     ))

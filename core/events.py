@@ -1,3 +1,4 @@
+from abc import ABCMeta
 from dataclasses import dataclass
 from typing import Any, Dict
 
@@ -28,6 +29,9 @@ class BaseEvent:
   @property
   def dict(self) -> Dict[str, Any]:
     return self.__getstate__()
+
+class All(BaseEvent, metaclass=ABCMeta):
+  pass
 
 @dataclass
 class TextInput(BaseEvent):

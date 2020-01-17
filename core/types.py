@@ -23,4 +23,4 @@ class MetadataHandler(Protocol):
 
 
 AnyEventHandler = Union[EventHandler, EventMetadataHandler, MetadataHandler]
-Types = Union[Type[BaseEvent], List[Type[BaseEvent]], None]
+Types = Union[Type[BaseEvent], List[Type[BaseEvent]]]
