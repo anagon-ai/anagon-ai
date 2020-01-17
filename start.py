@@ -3,6 +3,7 @@ import logging
 from core.core import Core
 from modules.EchoBot.module import EchoBot
 from modules.EventLoggingBot.module import EventLoggingBot
+from modules.MathBot.module import MathBot
 from modules.TimeBot.module import TimeBot
 from modules.ConsoleModule.module import ConsoleModule
 
@@ -15,5 +16,6 @@ if __name__ == '__main__':
   ai.add_module(EventLoggingBot('ai.log'))
   # ai.add_module(KafkaProducer())
   ai.add_module(ConsoleModule())
+  ai.add_module(MathBot())
 
   ai.boot()
