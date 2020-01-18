@@ -1,13 +1,17 @@
+import asyncio
 import inspect
 import logging
+from asyncio import ALL_COMPLETED, FIRST_EXCEPTION
 from collections import defaultdict
 from inspect import isclass
-from typing import Callable, Dict, List, Type, Union
+from typing import Callable, Dict, List, Type, Union, Any, Coroutine
 from uuid import uuid4
+
+from inflection import pluralize
 
 from core.errors import CoreNotBootedError, ModuleError, ModulePublishedBadEventError, \
     ModuleSubscribeEventNotMatchingHandlerError, ModuleSubscribedToNonClassError, ModuleSubscribedToNonEventClassError
-from core.events import BaseEvent, All
+from core.events import All, BaseEvent
 from core.messaging import Metadata
 from core.types import AnyEventHandler, EventMetadataHandler, Types
 from modules.BaseModule import BaseModule
@@ -27,21 +31,36 @@ class Core:
         logging.info("Registering: %s" % type(module).__name__)
         self.modules.append(module)
 
+    async def boot_module(self, module: BaseModule, tasks: List[Coroutine]) -> None:
+        logging.info("Booting module: %s" % type(module).__name__)
+
+        def module_publish(event: BaseEvent, metadata: Metadata = None) -> None:
+            return self.publish(event, metadata, module)
+
+        def module_subscribe(handler: AnyEventHandler, types: Types = All) -> None:
+            return self._subscribe(module=module, handler=handler, types=types)
+
+        def module_add_task(task: Coroutine) -> None:
+            logging.info(f"Added task: {type(module).__name__}.{task.__name__}")
+            tasks.append(task)
+
+        module.attach(publish=module_publish, subscribe=module_subscribe, add_task=module_add_task)
+        module.boot()
+
     def boot(self) -> None:
-        for module in self.modules:
-            logging.info("Booting module: %s" % type(module).__name__)
+        loop = asyncio.get_event_loop()
 
-            def module_publish(event: BaseEvent, metadata: Metadata = None) -> None:
-                return self.publish(event, metadata, module)
-
-            def module_subscribe(handler: AnyEventHandler, types: Types = All) -> None:
-                return self._subscribe(module=module, handler=handler, types=types)
-
-            module.attach(publish=module_publish, subscribe=module_subscribe)
-            module.boot()
-
-        self.booted = True
+        # boot modules and gather tasks
+        module_tasks: List[Coroutine] = []
+        module_boot_tasks = [self.boot_module(module, module_tasks) for module in self.modules]
+        loop.run_until_complete(asyncio.gather(*module_boot_tasks))
         logging.info("Booted all modules")
+        self.booted = True
+
+        # running module tasks
+        if module_tasks:
+            logging.info(f"Running module tasks")
+            loop.run_until_complete(asyncio.gather(*module_tasks))
 
     def publish(self, event: BaseEvent, metadata: Metadata = None, module: BaseModule = None) -> None:
         if not self.booted:

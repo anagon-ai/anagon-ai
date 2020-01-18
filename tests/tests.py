@@ -1,3 +1,4 @@
+import asyncio
 import unittest
 from dataclasses import dataclass
 from typing import Union
@@ -227,3 +228,20 @@ class CoreTests(unittest.TestCase):
         ai = Core()
         ai.add_module(ModuleWithMultipleTypes())
         ai.boot()
+
+    def test_add_task(self):
+        e = []
+
+        class ModuleWithTask(BaseModule):
+            def boot(self) -> None:
+                self.add_task(self.sleep())
+
+            async def sleep(self) -> None:
+                await asyncio.sleep(0.2)
+                e.append('done')
+
+        ai = Core()
+        ai.add_module(ModuleWithTask())
+        ai.boot()
+
+        self.assertEqual(['done'], e)
