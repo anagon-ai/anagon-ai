@@ -58,16 +58,17 @@ class ReminderBot(BaseModule):
     def on_text_input(self, event: TextInput) -> None:
         timed_reminder_match = re.search(
             '^remind me in '
-            '((?P<value>(a|one|\\d+)) ?(?P<unit>seconds?|minutes?|hours?|days?|months?|s|m|h)) to (?P<content>.+)$',
+            '(?P<value>(a|one|\\d+)) ?((?P<long_unit>seconds?|minutes?|hours?|days?|months?)|(?P<short_unit>s|m|h)) to (?P<content>.+)$',
             event.text)
         if timed_reminder_match:
             value = int(timed_reminder_match.group('value')
                         .replace('a', '1')
                         .replace('one', '1'))
-            full_unit = timed_reminder_match.group('unit') \
-                .replace('s', 'second') \
-                .replace('m', 'minute') \
-                .replace('h', 'hour')
+
+            if timed_reminder_match.group('short_unit'):
+                full_unit = {'s': 'second', 'm': 'minute', 'h': 'hour'}[timed_reminder_match.group('short_unit')]
+            else:
+                full_unit = timed_reminder_match.group('long_unit')
 
             unit = TimeUnit[singularize(full_unit).upper()]
 
