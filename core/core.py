@@ -1,6 +1,7 @@
 import asyncio
 import inspect
 import logging
+import sys
 from asyncio import Task
 from asyncio.events import AbstractEventLoop
 from collections import defaultdict
@@ -10,12 +11,20 @@ from uuid import uuid4
 
 from core.errors import CoreNotBootedError, ModuleError, ModulePublishedBadEventError, \
     ModuleSubscribeEventNotMatchingHandlerError, ModuleSubscribedToNonClassError, ModuleSubscribedToNonEventClassError
-from core.events import All, BaseEvent
+from core.events import All, BaseEvent, ExitCommand
 from core.messaging import Metadata
 from core.types import AnyEventHandler, EventHandler, EventMetadataHandler, EventTypes, MetadataHandler, \
     NoArgumentHandler
 from modules.BaseModule import BaseModule
 
+class CoreModule(BaseModule):
+    def boot(self) -> None:
+        self.subscribe(self.on_exit, ExitCommand)
+
+    async def on_exit(self) -> None:
+        await asyncio.sleep(3)
+        print("Exit")
+        sys.exit()
 
 class Core:
     modules: List
@@ -26,7 +35,7 @@ class Core:
 
     def __init__(self, metadata_provider: Callable[[], Metadata] = lambda: Metadata(id=uuid4())):
         self.tasks = []
-        self.modules = []
+        self.modules = [CoreModule()]
         self.booted = False
         setattr(self, 'metadata_provider', metadata_provider)
 
