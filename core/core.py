@@ -2,6 +2,7 @@ import asyncio
 import inspect
 import logging
 from asyncio import ALL_COMPLETED, FIRST_EXCEPTION
+from asyncio.events import AbstractEventLoop
 from collections import defaultdict
 from inspect import isclass
 from typing import Callable, Dict, List, Type, Union, Any, Coroutine
@@ -21,8 +22,11 @@ class Core:
     modules: List
     handlers: Dict[Union[None, str], List[AnyEventHandler]] = defaultdict(list)
     metadata_provider: Callable[[], Metadata]
+    tasks: List[Coroutine]
+    loop: AbstractEventLoop
 
     def __init__(self, metadata_provider: Callable[[], Metadata] = lambda: Metadata(id=uuid4())):
+        self.tasks = []
         self.modules = []
         self.booted = False
         setattr(self, 'metadata_provider', metadata_provider)
@@ -31,7 +35,7 @@ class Core:
         logging.info("Registering: %s" % type(module).__name__)
         self.modules.append(module)
 
-    async def boot_module(self, module: BaseModule, tasks: List[Coroutine]) -> None:
+    async def boot_module(self, module: BaseModule) -> None:
         logging.info("Booting module: %s" % type(module).__name__)
 
         def module_publish(event: BaseEvent, metadata: Metadata = None) -> None:
@@ -42,25 +46,27 @@ class Core:
 
         def module_add_task(task: Coroutine) -> None:
             logging.info(f"Added task: {type(module).__name__}.{task.__name__}")
-            tasks.append(task)
+            if not self.booted:
+                self.tasks.append(task)
+            else:
+                self.loop.create_task(task)
 
         module.attach(publish=module_publish, subscribe=module_subscribe, add_task=module_add_task)
         module.boot()
 
     def boot(self) -> None:
-        loop = asyncio.get_event_loop()
+        self.loop = asyncio.get_event_loop()
 
         # boot modules and gather tasks
-        module_tasks: List[Coroutine] = []
-        module_boot_tasks = [self.boot_module(module, module_tasks) for module in self.modules]
-        loop.run_until_complete(asyncio.gather(*module_boot_tasks))
+        module_boot_tasks = [self.boot_module(module) for module in self.modules]
+        self.loop.run_until_complete(asyncio.gather(*module_boot_tasks))
         logging.info("Booted all modules")
         self.booted = True
 
         # running module tasks
-        if module_tasks:
+        if self.tasks:
             logging.info(f"Running module tasks")
-            loop.run_until_complete(asyncio.gather(*module_tasks))
+            self.loop.run_until_complete(asyncio.gather(*self.tasks))
 
     def publish(self, event: BaseEvent, metadata: Metadata = None, module: BaseModule = None) -> None:
         if not self.booted:

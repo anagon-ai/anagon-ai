@@ -8,7 +8,7 @@ from util.developer_help import message_with_example
 
 
 class BaseModule:
-  def attach(self, publish: Callable, subscribe: Callable, add_task: Callable) -> None:
+  def attach(self, publish: Callable = lambda: None, subscribe: Callable = lambda: None, add_task: Callable = lambda: None) -> None:
     # override publish and subscribe without losing IDE assistance
     setattr(self, 'publish', publish)
     setattr(self, 'subscribe', subscribe)

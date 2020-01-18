@@ -19,17 +19,12 @@ class ConsoleModule(BaseModule):
 
         self.subscribe(handler=self.output, types=TextOutput)
         self.add_task(self.input_loop())
-        self.add_task(self.print_message_later())
 
     async def input_loop(self) -> None:
         while True:
             with patch_stdout():
                 text = await self.session.prompt_async(FormattedText([('#ffffff', '> ')]))
                 self.publish(TextInput(text=text))
-
-    async def print_message_later(self) -> None:
-        await asyncio.sleep(1)
-        self.publish(TextOutput('Delayed message'))
 
     # noinspection PyMethodMayBeStatic
     def output(self, event: TextOutput) -> None:

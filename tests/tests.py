@@ -237,7 +237,7 @@ class CoreTests(unittest.TestCase):
                 self.add_task(self.sleep())
 
             async def sleep(self) -> None:
-                await asyncio.sleep(0.2)
+                await asyncio.sleep(0.001)
                 e.append('done')
 
         ai = Core()

@@ -70,6 +70,7 @@ Methods:
 - `def handle[...](event)` &mdash; the module's event handler(s), registered in `boot()`. Defined by you.
 - `self.subscribe(handler, types)` &mdash; react to incoming events by subscribing your handlers to specific types.
 - `self.publish(event)` &mdash; publish an [Event](events.md) from your module, so other modules can react to it.
+- `self.add_task(task)` &mdash; add an asynchronous task, such as a wait-loop
 
 ## Examples
 
@@ -137,3 +138,4 @@ Bot that reminds you of tasks in the future.
 # todo
 
 ```
+

@@ -4,3 +4,4 @@ mypy
 jsonpickle
 inflection
 prompt_toolkit
+pytest
