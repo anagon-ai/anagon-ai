@@ -1,20 +1,18 @@
 import asyncio
 import inspect
 import logging
-from asyncio import ALL_COMPLETED, FIRST_EXCEPTION
+from asyncio import Task
 from asyncio.events import AbstractEventLoop
 from collections import defaultdict
 from inspect import isclass
-from typing import Callable, Dict, List, Type, Union, Any, Coroutine
+from typing import Callable, Coroutine, Dict, List, Optional, Type, Union
 from uuid import uuid4
-
-from inflection import pluralize
 
 from core.errors import CoreNotBootedError, ModuleError, ModulePublishedBadEventError, \
     ModuleSubscribeEventNotMatchingHandlerError, ModuleSubscribedToNonClassError, ModuleSubscribedToNonEventClassError
 from core.events import All, BaseEvent
 from core.messaging import Metadata
-from core.types import AnyEventHandler, EventMetadataHandler, Types
+from core.types import AnyEventHandler, EventHandler, EventMetadataHandler, MetadataHandler, EventTypes
 from modules.BaseModule import BaseModule
 
 
@@ -22,7 +20,7 @@ class Core:
     modules: List
     handlers: Dict[Union[None, str], List[AnyEventHandler]] = defaultdict(list)
     metadata_provider: Callable[[], Metadata]
-    tasks: List[Coroutine]
+    tasks: List[Union[Coroutine, Task]]
     loop: AbstractEventLoop
 
     def __init__(self, metadata_provider: Callable[[], Metadata] = lambda: Metadata(id=uuid4())):
@@ -41,15 +39,12 @@ class Core:
         def module_publish(event: BaseEvent, metadata: Metadata = None) -> None:
             return self.publish(event, metadata, module)
 
-        def module_subscribe(handler: AnyEventHandler, types: Types = All) -> None:
+        def module_subscribe(handler: AnyEventHandler, types: EventTypes = All) -> None:
             return self._subscribe(module=module, handler=handler, types=types)
 
         def module_add_task(task: Coroutine) -> None:
             logging.info(f"Added task: {type(module).__name__}.{task.__name__}")
-            if not self.booted:
-                self.tasks.append(task)
-            else:
-                self.loop.create_task(task)
+            self.add_task(task)
 
         module.attach(publish=module_publish, subscribe=module_subscribe, add_task=module_add_task)
         module.boot()
@@ -64,9 +59,10 @@ class Core:
         self.booted = True
 
         # running module tasks
-        if self.tasks:
-            logging.info(f"Running module tasks")
-            self.loop.run_until_complete(asyncio.gather(*self.tasks))
+        logging.info(f"Running module tasks")
+        while self.tasks:
+            new_tasks, self.tasks = self.tasks[:], []
+            self.loop.run_until_complete(asyncio.gather(*new_tasks))
 
     def publish(self, event: BaseEvent, metadata: Metadata = None, module: BaseModule = None) -> None:
         if not self.booted:
@@ -75,20 +71,40 @@ class Core:
         if not isinstance(event, BaseEvent):
             raise ModulePublishedBadEventError(module=module, event=event)
 
-        metadata = metadata if metadata else self.metadata_provider()
+        _metadata: Metadata = metadata if metadata else self.metadata_provider()
 
         for handler in self.handlers[event.type] + self.handlers[All.__name__]:
             (handler_args_spec, *_) = inspect.getfullargspec(handler)
 
-            if 'event' in handler_args_spec and 'metadata' in handler_args_spec:
-                assert isinstance(handler, EventMetadataHandler)
-                handler(event=event, metadata=metadata)
-            elif 'event' in handler_args_spec:
-                handler(event=event)
-            elif 'metadata' in handler_args_spec:
-                handler(metadata=metadata)
+            def exec_handler() -> Optional[Coroutine]:
+                if 'event' in handler_args_spec and 'metadata' in handler_args_spec:
+                    assert isinstance(handler, EventMetadataHandler)
+                    return handler(event=event, metadata=_metadata)
+                elif 'event' in handler_args_spec:
+                    assert isinstance(handler, EventHandler)
+                    return handler(event=event)
+                elif 'metadata' in handler_args_spec:
+                    assert isinstance(handler, MetadataHandler)
+                    return handler(metadata=_metadata)
+                else:
+                    raise ModuleError('Invalid handler (todo: explain)')
 
-    def _subscribe(self, module: BaseModule, handler: AnyEventHandler, types: Types = All) -> None:
+            handler_return_value = exec_handler()
+
+            # Support co-routines
+            if isinstance(handler_return_value, Coroutine):
+                self.add_task(handler_return_value)
+            elif handler_return_value is not None:
+                raise ModuleError('Module handler should not return any value')
+
+    def add_task(self, coroutine: Coroutine) -> None:
+        if not self.booted:
+            self.tasks.append(coroutine)
+        else:
+            task = self.loop.create_task(coroutine)
+            self.tasks.append(task)
+
+    def _subscribe(self, module: BaseModule, handler: AnyEventHandler, types: EventTypes = All) -> None:
         """Internal: Attaches a module's event handler to all types or a specific set of types"""
 
         # todo: permission check

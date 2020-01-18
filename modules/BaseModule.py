@@ -1,8 +1,8 @@
 from typing import Callable, List, Type, Union, Coroutine
 
-from core.types import AnyEventHandler
+from core.types import AnyEventHandler, EventTypes
 from core.errors import ModuleError
-from core.events import BaseEvent
+from core.events import BaseEvent, All
 from core.messaging import Metadata
 from util.developer_help import message_with_example
 
@@ -28,7 +28,7 @@ class BaseModule:
       ))
 
   def subscribe(self, handler: AnyEventHandler,
-                types: Union[List[Type[BaseEvent]], Type[BaseEvent]] = None) -> None:
+                types: EventTypes = All) -> None:
     raise ModuleError(message_with_example(
       example="docs/examples/append_module.py",
       message="""

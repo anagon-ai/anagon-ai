@@ -61,22 +61,24 @@ class ReminderBot(BaseModule):
             '((?P<value>(a|one|\\d+)) ?(?P<unit>seconds?|minutes?|hours?|days?|months?|s|m|h)) to (?P<content>.+)$',
             event.text)
         if timed_reminder_match:
-            value = int(timed_reminder_match.group('value').replace('a', '1').replace('one', '1'))
-            unit = TimeUnit[
-                singularize(timed_reminder_match.group('unit').upper().replace('s', 'second').replace('m', 'minute').replace('h', 'hour'))
-            ]
+            value = int(timed_reminder_match.group('value')
+                        .replace('a', '1')
+                        .replace('one', '1'))
+            full_unit = timed_reminder_match.group('unit') \
+                .replace('s', 'second') \
+                .replace('m', 'minute') \
+                .replace('h', 'hour')
+
+            unit = TimeUnit[singularize(full_unit).upper()]
 
             content = timed_reminder_match.group('content')
             reminder = Reminder(content=content)
             interval = TimeInterval(value=value, unit=unit)
             self.publish(TimedReminderCreated(reminder=reminder, interval=interval))
 
-    def on_reminder_created(self, event: TimedReminderCreated) -> None:
-        self.add_task(self.show_reminder(event.reminder, event.interval))
+    async def on_reminder_created(self, event: TimedReminderCreated) -> None:
+        await asyncio.sleep(event.interval.in_seconds)
+        self.publish(event.reminder)
 
-    def on_reminder(self, event: Reminder):
+    def on_reminder(self, event: Reminder) -> None:
         self.publish(TextOutput(text=f'Reminder: {event.content}'))
-
-    async def show_reminder(self, reminder: Reminder, delay: TimeInterval) -> None:
-        await asyncio.sleep(delay.in_seconds)
-        self.publish(reminder)
