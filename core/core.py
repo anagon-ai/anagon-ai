@@ -12,7 +12,8 @@ from core.errors import CoreNotBootedError, ModuleError, ModulePublishedBadEvent
     ModuleSubscribeEventNotMatchingHandlerError, ModuleSubscribedToNonClassError, ModuleSubscribedToNonEventClassError
 from core.events import All, BaseEvent
 from core.messaging import Metadata
-from core.types import AnyEventHandler, EventHandler, EventMetadataHandler, MetadataHandler, EventTypes
+from core.types import AnyEventHandler, EventHandler, EventMetadataHandler, EventTypes, MetadataHandler, \
+    NoArgumentHandler
 from modules.BaseModule import BaseModule
 
 
@@ -86,8 +87,11 @@ class Core:
                 elif 'metadata' in handler_args_spec:
                     assert isinstance(handler, MetadataHandler)
                     return handler(metadata=_metadata)
+                elif len(set(handler_args_spec).difference({'self'})) == 0:
+                    assert isinstance(handler, NoArgumentHandler)
+                    return handler()
                 else:
-                    raise ModuleError('Invalid handler (todo: explain)')
+                    raise ModuleError(f'Invalid handler: {handler_args_spec}')
 
             handler_return_value = exec_handler()
 

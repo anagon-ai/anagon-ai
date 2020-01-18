@@ -22,5 +22,11 @@ class MetadataHandler(Protocol):
     pass
 
 
-AnyEventHandler = Union[EventHandler, EventMetadataHandler, MetadataHandler]
+@runtime_checkable
+class NoArgumentHandler(Protocol):
+  def __call__(self) -> Optional[Coroutine]:
+    pass
+
+
+AnyEventHandler = Union[EventHandler, EventMetadataHandler, MetadataHandler, NoArgumentHandler]
 EventTypes = Union[Type[BaseEvent], List[Type[BaseEvent]]]
