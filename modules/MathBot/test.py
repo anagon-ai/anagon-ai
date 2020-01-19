@@ -33,3 +33,15 @@ class TestMathBot(TestCase):
             'The result is: 15.0',
             self.run_bot('3+7+5')
         )
+
+    def test_not_math(self):
+        self.assertEqual(
+            'The result is: nan',
+            self.run_bot('This is not a calculation')
+        )
+
+    def test_not_math_but_with_plus_sign(self):
+        self.assertEqual(
+            'The result is: nan',
+            self.run_bot('This is not a calculation + it contains a plus sign')
+        )

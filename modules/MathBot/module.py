@@ -59,6 +59,8 @@ class MathBot(BaseModule):
                 term1=self.parser(term1),
                 term2=self.parser(term2)
             )
+        else:
+            return Constant(float('nan'))
 
     def execute(self, event: MathParsed):
         self.publish(TextOutput(f'The result is: {event.expression.result()}'))
