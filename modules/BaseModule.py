@@ -1,9 +1,9 @@
-from typing import Callable, List, Type, Union, Coroutine
+from typing import Callable, Coroutine
 
-from core.types import AnyEventHandler, EventTypes
 from core.errors import ModuleError
-from core.events import BaseEvent, All
+from core.events import All, BaseEvent
 from core.messaging import Metadata
+from core.types import AnyEventHandler, EventTypes
 from util.developer_help import message_with_example
 
 
@@ -19,11 +19,10 @@ class BaseModule:
     raise ModuleError(message_with_example(
       example="docs/examples/append_module.py",
       message="""
-    %(class)s was not attached to Core before publishing.
+%(class)s was not attached to Core before publishing.
 
-    You cannot boot your module directly (like: %(class)s.boot()).
-    It must instead be added to the AI Core, which is boots the modules for you. 
-
+You cannot boot your module directly (like: %(class)s.boot()).
+It must instead be added to the AI Core, which is boots the modules for you. 
     """ % {'class': self.__class__.__name__}
       ))
 
@@ -36,7 +35,6 @@ class BaseModule:
 
 You cannot boot your module directly (like: %(class)s.boot()).
 It must instead be added to the AI Core, which is boots the modules for you. 
-
 """ % {'class': self.__class__.__name__}
       ))
 
@@ -56,10 +54,9 @@ Add a boot() method and subscribe to events.
     raise ModuleError(message_with_example(
       example="docs/examples/append_module.py",
       message="""
-    %(class)s was not attached to Core before adding task.
+%(class)s was not attached to Core before adding task.
 
-    You cannot boot your module directly (like: %(class)s.boot()).
-    It must instead be added to the AI Core, which is boots the modules for you. 
-
-    """ % {'class': self.__class__.__name__}
+You cannot boot your module directly (like: %(class)s.boot()).
+It must instead be added to the AI Core, which is boots the modules for you. 
+""" % {'class': self.__class__.__name__}
       ))
