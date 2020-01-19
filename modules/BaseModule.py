@@ -1,17 +1,18 @@
-from typing import Callable, List, Type, Union
+from typing import Callable, List, Type, Union, Coroutine
 
-from core.types import AnyEventHandler
+from core.types import AnyEventHandler, EventTypes
 from core.errors import ModuleError
-from core.events import BaseEvent
+from core.events import BaseEvent, All
 from core.messaging import Metadata
 from util.developer_help import message_with_example
 
 
 class BaseModule:
-  def attach(self, publish: Callable, subscribe: Callable) -> None:
+  def attach(self, publish: Callable = lambda: None, subscribe: Callable = lambda: None, add_task: Callable = lambda: None) -> None:
     # override publish and subscribe without losing IDE assistance
     setattr(self, 'publish', publish)
     setattr(self, 'subscribe', subscribe)
+    setattr(self, 'add_task', add_task)
     pass
 
   def publish(self, event: BaseEvent, metadata: Metadata = None) -> None:
@@ -27,7 +28,7 @@ class BaseModule:
       ))
 
   def subscribe(self, handler: AnyEventHandler,
-                types: Union[List[Type[BaseEvent]], Type[BaseEvent]] = None) -> None:
+                types: EventTypes = All) -> None:
     raise ModuleError(message_with_example(
       example="docs/examples/append_module.py",
       message="""
@@ -50,3 +51,15 @@ ExampleClass should override the parent boot() method.
 
 Add a boot() method and subscribe to events.
 """, object=self))
+
+  def add_task(self, task: Coroutine) -> None:
+    raise ModuleError(message_with_example(
+      example="docs/examples/append_module.py",
+      message="""
+    %(class)s was not attached to Core before adding task.
+
+    You cannot boot your module directly (like: %(class)s.boot()).
+    It must instead be added to the AI Core, which is boots the modules for you. 
+
+    """ % {'class': self.__class__.__name__}
+      ))

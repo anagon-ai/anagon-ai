@@ -1,12 +1,14 @@
+import asyncio
 import unittest
 from dataclasses import dataclass
+from typing import Union
 from uuid import UUID
 
 from jsonpickle import Pickler
 
 from core.core import Core
-from core.errors import CoreNotBootedError, ModulePublishedBadEventError, ModuleSubscribedToNonClassError, \
-  ModuleSubscribedToNonEventClassError, ModuleError
+from core.errors import CoreNotBootedError, ModuleError, ModulePublishedBadEventError, ModuleSubscribedToNonClassError, \
+    ModuleSubscribedToNonEventClassError
 from core.events import BaseEvent
 from core.messaging import Metadata
 from modules.BaseModule import BaseModule
@@ -16,172 +18,230 @@ test_uuid = UUID('24415436-3319-11ea-964d-88e9fe73dff3')
 
 @dataclass
 class EventTypeA(BaseEvent):
-  content: str
-  type = 'be.anagon.ai.core.poc.a'
+    content: str
+    type = 'be.anagon.ai.core.poc.a'
 
 
 @dataclass
 class EventTypeB(BaseEvent):
-  content: str
-  type = 'be.anagon.ai.core.poc.b'
+    content: str
+    type = 'be.anagon.ai.core.poc.b'
 
 
 @dataclass
 class TestEvent(BaseEvent):
-  type = 'be.anagon.ai.test.event'
-  content: str
+    type = 'be.anagon.ai.test.event'
+    content: str
 
 class AllEventsModule(BaseModule):
-  received_events = []
+    received_events = []
 
-  def boot(self):
-    self.subscribe(handler=self.handle)
+    def boot(self):
+        self.subscribe(handler=self.handle)
 
-  def handle(self, event):
-    self.received_events.append(event.content)
-
-class CoreTests(unittest.TestCase):
-  def test_ai_must_be_booted_before_publishing(self):
-    ai = Core()
-    self.assertRaises(CoreNotBootedError, lambda: ai.publish(EventTypeA(content="a")))
-
-  def test_module_receives_only_events_it_subscribed_to(self):
-    class AEventsModule(BaseModule):
-      received_events = []
-
-      def boot(self):
-        self.subscribe(self.handle_a, types=EventTypeA)
-
-      def handle_a(self, event: EventTypeA):
+    def handle(self, event):
         self.received_events.append(event.content)
 
-    ai = Core()
-    foobar = AEventsModule()
-    ai.add_module(foobar)
 
-    ai.boot()
+class CoreTests(unittest.TestCase):
+    def test_ai_must_be_booted_before_publishing(self):
+        ai = Core()
+        self.assertRaises(CoreNotBootedError, lambda: ai.publish(EventTypeA(content="a")))
 
-    ai.publish(EventTypeA(content="a"))
-    ai.publish(EventTypeB(content="b"))
+    def test_module_receives_only_events_it_subscribed_to(self):
+        class AEventsModule(BaseModule):
+            received_events = []
 
-    self.assertEqual(['a'], foobar.received_events)
+            def boot(self):
+                self.subscribe(self.handle_a, types=EventTypeA)
 
-  def test_module_receives_all_events(self):
-    ai = Core()
-    module = AllEventsModule()
-    ai.add_module(module)
+            def handle_a(self, event: EventTypeA):
+                self.received_events.append(event.content)
 
-    ai.boot()
+        ai = Core()
+        foobar = AEventsModule()
+        ai.add_module(foobar)
 
-    ai.publish(EventTypeA(content="a"))
-    ai.publish(EventTypeB(content="b"))
+        ai.boot()
 
-    self.assertEqual(['a', 'b'], module.received_events)
+        ai.publish(EventTypeA(content="a"))
+        ai.publish(EventTypeB(content="b"))
 
-  def test_publishing_non_class(self):
-    class BadPublisher(BaseModule):
+        self.assertEqual(['a'], foobar.received_events)
 
-      def boot(self):
-        pass
+    def test_module_receives_all_events(self):
+        ai = Core()
+        module = AllEventsModule()
+        ai.add_module(module)
 
-    ai = Core()
-    module = BadPublisher()
-    ai.add_module(module)
+        ai.boot()
 
-    ai.boot()
+        ai.publish(EventTypeA(content="a"))
+        ai.publish(EventTypeB(content="b"))
 
-    self.assertRaises(ModulePublishedBadEventError, lambda: module.publish("not an event"))
+        self.assertEqual(['a', 'b'], module.received_events)
 
-  def test_subscribing_non_class(self):
-    class BadSubscriber(BaseModule):
-      def boot(self):
-        self.subscribe(lambda: None, types='MyEvent')
+    def test_publishing_non_class(self):
+        class BadPublisher(BaseModule):
 
-    ai = Core()
-    module = BadSubscriber()
-    ai.add_module(module)
-    self.assertRaises(ModuleSubscribedToNonClassError, lambda: ai.boot())
+            def boot(self):
+                pass
 
-  def test_subscribing_non_event_class(self):
-    class FakeEvent:
-      pass
+        ai = Core()
+        module = BadPublisher()
+        ai.add_module(module)
 
-    class BadSubscriber(BaseModule):
-      def boot(self):
-        self.subscribe(lambda: None, types=FakeEvent)
+        ai.boot()
 
-    ai = Core()
-    module = BadSubscriber()
-    ai.add_module(module)
+        self.assertRaises(ModulePublishedBadEventError, lambda: module.publish("not an event"))
 
-    self.assertRaises(ModuleSubscribedToNonEventClassError, lambda: ai.boot())
+    def test_subscribing_non_class(self):
+        class BadSubscriber(BaseModule):
+            def boot(self):
+                self.subscribe(lambda: None, types='MyEvent')
 
-  def test_event_dict(self):
-    @dataclass
-    class TestEvent(BaseEvent):
-      type = 'foo'  # overwritten
-      attr = 'bar'  # class attribute
-      text: str
+        ai = Core()
+        module = BadSubscriber()
+        ai.add_module(module)
+        self.assertRaises(ModuleSubscribedToNonClassError, lambda: ai.boot())
 
-    self.assertEqual({'type': 'foo', 'attr': 'bar', 'text': 'hello'}, TestEvent('hello').dict)
+    def test_subscribing_non_event_class(self):
+        class FakeEvent:
+            pass
 
-  def test_handle_metadata(self):
-    received_ids = []
+        class BadSubscriber(BaseModule):
+            def boot(self):
+                self.subscribe(lambda: None, types=FakeEvent)
 
-    class MetadataModule(BaseModule):
-      def boot(self):
-        self.subscribe(self.handler)
+        ai = Core()
+        module = BadSubscriber()
+        ai.add_module(module)
 
-      def handler(self, event: BaseEvent, metadata: Metadata):
-        received_ids.append(metadata.id)
+        self.assertRaises(ModuleSubscribedToNonEventClassError, lambda: ai.boot())
 
-    ai = Core(metadata_provider=lambda: Metadata(id=test_uuid))
-    ai.add_module(MetadataModule())
-    ai.boot()
+    def test_event_dict(self):
+        @dataclass
+        class TestEvent(BaseEvent):
+            type = 'foo'  # overwritten
+            attr = 'bar'  # class attribute
+            text: str
 
-    ai.publish(TestEvent('hello'))
+        self.assertEqual({'type': 'foo', 'attr': 'bar', 'text': 'hello'}, TestEvent('hello').dict)
 
-    self.assertEqual([test_uuid], received_ids)
+    def test_handle_metadata(self):
+        received_ids = []
 
-  def test_metadata_id_is_same_for_all_handlers(self):
-    received_ids = []
+        class MetadataModule(BaseModule):
+            def boot(self):
+                self.subscribe(self.handler)
 
-    class MetadataModule(BaseModule):
-      def boot(self):
-        self.subscribe(lambda metadata: received_ids.append(metadata.id))
-        self.subscribe(lambda metadata: received_ids.append(metadata.id))
+            def handler(self, event: BaseEvent, metadata: Metadata):
+                received_ids.append(metadata.id)
 
-    ai = Core()
-    ai.add_module(MetadataModule())
-    ai.boot()
+        ai = Core(metadata_provider=lambda: Metadata(id=test_uuid))
+        ai.add_module(MetadataModule())
+        ai.boot()
 
-    ai.publish(TestEvent('hello'))
+        ai.publish(TestEvent('hello'))
 
-    self.assertEqual(2, len(received_ids))
-    self.assertEqual(received_ids[0], received_ids[1])
+        self.assertEqual([test_uuid], received_ids)
 
-  def test_handler_arguments(self):
-    class FooModule(BaseModule):
-      def boot(self):
-        self.subscribe(self.handle)
+    def test_metadata_id_is_same_for_all_handlers(self):
+        received_ids = []
 
-      def handle(self, message):
-        pass
+        class MetadataModule(BaseModule):
+            def boot(self):
+                self.subscribe(lambda metadata: received_ids.append(metadata.id))
+                self.subscribe(lambda metadata: received_ids.append(metadata.id))
 
-    ai = Core()
-    ai.add_module(FooModule())
+        ai = Core()
+        ai.add_module(MetadataModule())
+        ai.boot()
 
-    self.assertRaises(ModuleError, lambda: ai.boot())
+        ai.publish(TestEvent('hello'))
 
-  def test_pickle_json_includes_class_attributes(self):
-    @dataclass
-    class TestEventClassAttributes(BaseEvent):
-      type = 'ai.anagon.base'
-      sub_type = 'ai.anagon.child'
-      content: str
+        self.assertEqual(2, len(received_ids))
+        self.assertEqual(received_ids[0], received_ids[1])
 
-    self.assertEqual({
-        'type': 'ai.anagon.base',
-        'sub_type': 'ai.anagon.child',
-        'content': 'test',
-      }, Pickler(unpicklable=False).flatten(TestEventClassAttributes("test")))
+    def test_handler_arguments(self):
+        class FooModule(BaseModule):
+            def boot(self):
+                self.subscribe(self.handle)
+
+            def handle(self, message):
+                pass
+
+        ai = Core()
+        ai.add_module(FooModule())
+
+        self.assertRaises(ModuleError, lambda: ai.boot())
+
+    def test_pickle_json_includes_class_attributes(self):
+        @dataclass
+        class TestEventClassAttributes(BaseEvent):
+            type = 'ai.anagon.base'
+            sub_type = 'ai.anagon.child'
+            content: str
+
+        self.assertEqual({
+            'type': 'ai.anagon.base',
+            'sub_type': 'ai.anagon.child',
+            'content': 'test',
+            }, Pickler(unpicklable=False).flatten(TestEventClassAttributes("test")))
+
+    def test_handler_type_matches_subscribe(self):
+        class ModuleWithTypeMismatch(BaseModule):
+
+            def boot(self) -> None:
+                self.subscribe(self.handle, types=EventTypeA)
+
+            def handle(self, event: EventTypeB):
+                pass
+
+        ai = Core()
+        ai.add_module(ModuleWithTypeMismatch())
+
+        self.assertRaises(ModuleError, lambda: ai.boot())
+
+    def test_handler_multiple_types(self):
+        class ModuleWithMultipleTypes(BaseModule):
+
+            def boot(self) -> None:
+                self.subscribe(self.handle, types=[EventTypeA, EventTypeB])
+
+            def handle(self, event: Union[EventTypeA, EventTypeB]):
+                pass
+
+        ai = Core()
+        ai.add_module(ModuleWithMultipleTypes())
+        ai.boot()
+
+    def test_handler_without_type_hint(self):
+        class ModuleWithMultipleTypes(BaseModule):
+
+            def boot(self) -> None:
+                self.subscribe(self.handle, types=[EventTypeA, EventTypeB])
+
+            def handle(self, event):
+                pass
+
+        ai = Core()
+        ai.add_module(ModuleWithMultipleTypes())
+        ai.boot()
+
+    def test_add_task(self):
+        e = []
+
+        class ModuleWithTask(BaseModule):
+            def boot(self) -> None:
+                self.add_task(self.sleep())
+
+            async def sleep(self) -> None:
+                await asyncio.sleep(0.001)
+                e.append('done')
+
+        ai = Core()
+        ai.add_module(ModuleWithTask())
+        ai.boot()
+
+        self.assertEqual(['done'], e)

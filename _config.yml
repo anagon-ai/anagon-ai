@@ -1,0 +1,10 @@
+plugins:
+  - jekyll-relative-links
+  - jemoji
+relative_links:
+  enabled: true
+  collections: true
+include:
+  - README.md
+theme: jekyll-theme-slate
+markdown: GFM

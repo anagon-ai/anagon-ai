@@ -66,10 +66,12 @@ Add the `metadata` argument to access the event's `id` and other [Metadata](meta
 
 Methods:
 
-- `def boot()` &mdash; method you need to define to initialize your module.
+- `def boot(self)` &mdash; method you need to define to initialize your module.
 - `def handle[...](event)` &mdash; the module's event handler(s), registered in `boot()`. Defined by you.
+  - `async def handle[...](event)` to run the handler asynchronously
 - `self.subscribe(handler, types)` &mdash; react to incoming events by subscribing your handlers to specific types.
 - `self.publish(event)` &mdash; publish an [Event](events.md) from your module, so other modules can react to it.
+- `self.add_task(task)` &mdash; add an asynchronous task, such as a wait-loop
 
 ## Examples
 
@@ -80,7 +82,7 @@ Methods:
 
 Simple bot that writes all incoming events to a file:
 
-- notice the functions of `__init__`, `boot` and `handler`
+- notice the usage of `__init__`, `boot` and `handler`
 
 ```python
 import typing
@@ -106,34 +108,37 @@ class EventLoggingBot(BaseModule):
 
 ### TimeBot
 
-Bot that prints the time when you say the word `time`:
+Bot that prints the time when you say the word `time`, and shows the time _every 60 seconds_.
 
 - notice the usage of `self.publish(TextOutput(...))` to print something to the screen, which is handled by another Module.
+- notice the usage of `self.add_task(...)` to run code asynchronously
 
 ```python
+import asyncio
 import datetime
 
-from modules.BaseModule import BaseModule
 from core.events import TextInput, TextOutput
+from modules.BaseModule import BaseModule
 
 
 class TimeBot(BaseModule):
 
-  def boot(self):
-    self.subscribe(self.handle, types=TextInput)
+    def boot(self) -> None:
+        self.subscribe(handler=self.handle, types=TextInput)
+        self.add_task(self.announce_time_every_minute())
 
-  def handle(self, message: TextInput):
-    if message.text.find('time') > -1:
-      self.publish(TextOutput(text='The time is: %s' % datetime.datetime.now().strftime('%H:%M:%S')))
-```
+    def handle(self, event: TextInput) -> None:
+        if event.text.find('time') > -1:
+            self.announce_time()
 
+    async def announce_time_every_minute(self) -> None:
+        while True:
+            time = datetime.datetime.now()
+            if time.second == 0:
+                self.announce_time()
 
-### ReminderBot
+            await asyncio.sleep(1)
 
-Bot that reminds you of tasks in the future.
-
-```python
-
-# todo
-
+    def announce_time(self) -> None:
+        self.publish(TextOutput(text='The time is: %s' % datetime.datetime.now().strftime('%H:%M:%S')))
 ```

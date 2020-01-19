@@ -1,5 +1,6 @@
+from abc import ABCMeta
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from typing_extensions import TypedDict
 
@@ -29,6 +30,9 @@ class BaseEvent:
   def dict(self) -> Dict[str, Any]:
     return self.__getstate__()
 
+class All(BaseEvent, metaclass=ABCMeta):
+  pass
+
 @dataclass
 class TextInput(BaseEvent):
   type = 'be.anagon.ai.poc.text.input'
@@ -39,3 +43,18 @@ class TextInput(BaseEvent):
 class TextOutput(BaseEvent):
   type = 'be.anagon.ai.poc.text.output'
   text: str
+
+@dataclass
+class TextCommand(BaseEvent):
+  type = 'be.anagon.ai.poc.text.command'
+  command: str
+  args: List[str]
+
+class ExitCommand(BaseEvent):
+  type = 'be.anagon.ai.poc.command.exit'
+
+@dataclass
+class TextCommandInfo(BaseEvent):
+  type = 'be.anagon.ai.poc.text.command.info'
+  command: str
+  description: str
