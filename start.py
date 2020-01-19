@@ -17,8 +17,8 @@ if __name__ == '__main__':
   ai.add_module(TimeBot())
   ai.add_module(EventLoggingBot('ai.log'))
   ai.add_module(ReminderBot())
+  # ai.add_module(MathBot())
   ai.add_module(ConsoleModule())
   ai.add_module(CommandHelper())
-  ai.add_module(MathBot())
 
   ai.boot()
