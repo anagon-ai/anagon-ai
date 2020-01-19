@@ -94,9 +94,49 @@ class ModuleSubscribeEventNotMatchingHandlerError(ModuleError):
       example='docs/examples/module_subscribe_event_not_matching_handler.py',
       # object=handler,
       params={
-        'ExampleModule': module.__class__.__name__,
-        'SubscribedEvent': bad(event.__name__),
-        'ExpectedEvent': bad(handler.__annotations__['event'].__name__),
-        'ExampleHandler': handler.__name__,
-      }
-    ))
+          'ExampleModule': module.__class__.__name__,
+          'SubscribedEvent': bad(event.__name__),
+          'ExpectedEvent': bad(handler.__annotations__['event'].__name__),
+          'ExampleHandler': handler.__name__,
+          }
+      ))
+
+
+class ModulePublishedBeforeAttachingError(ModuleError):
+
+  def __init__(self, module) -> None:
+    super().__init__(message_with_example(
+      example="docs/examples/append_module.py",
+      message="""
+%(class)s was not attached to Core before publishing.
+
+You cannot boot your module directly (like: %(class)s.boot()).
+It must instead be added to the AI Core, which is boots the modules for you. 
+        """ % {'class': module.__class__.__name__}
+      ))
+
+
+class ModuleSubscribedBeforeAttachingError(ModuleError):
+  def __init__(self, module) -> None:
+    super().__init__(message_with_example(
+      example="docs/examples/append_module.py",
+      message="""
+%(class)s was not attached to Core before subscribing.
+
+You cannot boot your module directly (like: %(class)s.boot()).
+It must instead be added to the AI Core, which is boots the modules for you. 
+""" % {'class': module.__class__.__name__}
+      ))
+
+
+class ModuleAddedTaskBeforeAttachingError(ModuleError):
+  def __init__(self, module) -> None:
+    super().__init__(message_with_example(
+      example="docs/examples/append_module.py",
+      message="""
+%(class)s was not attached to Core before adding task.
+
+You cannot boot your module directly (like: %(class)s.boot()).
+It must instead be added to the AI Core, which is boots the modules for you. 
+""" % {'class': module.__class__.__name__}
+      ))

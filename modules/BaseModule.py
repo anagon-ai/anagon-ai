@@ -1,6 +1,7 @@
 from typing import Callable, Coroutine
 
-from core.errors import ModuleError
+from core.errors import ModuleAddedTaskBeforeAttachingError, ModulePublishedBeforeAttachingError, \
+  ModuleSubscribedBeforeAttachingError
 from core.events import All, BaseEvent
 from core.messaging import Metadata
 from core.types import AnyEventHandler, EventTypes
@@ -8,7 +9,8 @@ from util.developer_help import message_with_example
 
 
 class BaseModule:
-  def attach(self, publish: Callable = lambda: None, subscribe: Callable = lambda: None, add_task: Callable = lambda: None) -> None:
+  def attach(self, publish: Callable = lambda: None, subscribe: Callable = lambda: None,
+             add_task: Callable = lambda: None) -> None:
     # override publish and subscribe without losing IDE assistance
     setattr(self, 'publish', publish)
     setattr(self, 'subscribe', subscribe)
@@ -16,27 +18,13 @@ class BaseModule:
     pass
 
   def publish(self, event: BaseEvent, metadata: Metadata = None) -> None:
-    raise ModuleError(message_with_example(
-      example="docs/examples/append_module.py",
-      message="""
-%(class)s was not attached to Core before publishing.
+    raise ModulePublishedBeforeAttachingError(module=self)
 
-You cannot boot your module directly (like: %(class)s.boot()).
-It must instead be added to the AI Core, which is boots the modules for you. 
-    """ % {'class': self.__class__.__name__}
-      ))
+  def subscribe(self, handler: AnyEventHandler, types: EventTypes = All) -> None:
+    raise ModuleSubscribedBeforeAttachingError(module=self)
 
-  def subscribe(self, handler: AnyEventHandler,
-                types: EventTypes = All) -> None:
-    raise ModuleError(message_with_example(
-      example="docs/examples/append_module.py",
-      message="""
-%(class)s was not attached to Core before subscribing.
-
-You cannot boot your module directly (like: %(class)s.boot()).
-It must instead be added to the AI Core, which is boots the modules for you. 
-""" % {'class': self.__class__.__name__}
-      ))
+  def add_task(self, task: Coroutine) -> None:
+    raise ModuleAddedTaskBeforeAttachingError(module=self)
 
   def boot(self) -> None:
     raise NotImplementedError(message_with_example(
@@ -49,14 +37,3 @@ ExampleClass should override the parent boot() method.
 
 Add a boot() method and subscribe to events.
 """, object=self))
-
-  def add_task(self, task: Coroutine) -> None:
-    raise ModuleError(message_with_example(
-      example="docs/examples/append_module.py",
-      message="""
-%(class)s was not attached to Core before adding task.
-
-You cannot boot your module directly (like: %(class)s.boot()).
-It must instead be added to the AI Core, which is boots the modules for you. 
-""" % {'class': self.__class__.__name__}
-      ))
