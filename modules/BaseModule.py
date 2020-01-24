@@ -1,4 +1,4 @@
-from typing import Callable, Coroutine
+from typing import Callable, Coroutine, Optional
 
 from core.errors import ModuleAddedTaskBeforeAttachingError, ModulePublishedBeforeAttachingError, \
   ModuleSubscribedBeforeAttachingError
@@ -9,13 +9,15 @@ from util.developer_help import message_with_example
 
 
 class BaseModule:
-  def attach(self, publish: Callable = lambda: None, subscribe: Callable = lambda: None,
-             add_task: Callable = lambda: None) -> None:
+  def attach(self, publish: Optional[Callable] = None, subscribe: Optional[Callable] = None,
+             add_task: Optional[Callable] = None) -> None:
     # override publish and subscribe without losing IDE assistance
-    setattr(self, 'publish', publish)
-    setattr(self, 'subscribe', subscribe)
-    setattr(self, 'add_task', add_task)
-    pass
+    if publish:
+      setattr(self, 'publish', publish)
+    if subscribe:
+      setattr(self, 'subscribe', subscribe)
+    if add_task:
+      setattr(self, 'add_task', add_task)
 
   def publish(self, event: BaseEvent, metadata: Metadata = None) -> None:
     raise ModulePublishedBeforeAttachingError(module=self)

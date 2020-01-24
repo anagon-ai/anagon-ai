@@ -10,7 +10,8 @@ from typing import Callable, Coroutine, Dict, List, Optional, Type, Union
 from uuid import uuid4
 
 from core.errors import CoreNotBootedError, ModuleError, ModulePublishedBadEventError, \
-    ModuleSubscribeEventNotMatchingHandlerError, ModuleSubscribedToNonClassError, ModuleSubscribedToNonEventClassError
+    ModuleSubscribeEventNotMatchingHandlerError, ModuleSubscribedToNonClassError, ModuleSubscribedToNonEventClassError, \
+    ModuleSubscribedAfterBoot
 from core.events import All, BaseEvent, ExitCommand
 from core.messaging import Metadata
 from core.types import AnyEventHandler, EventHandler, EventMetadataHandler, EventTypes, MetadataHandler, \
@@ -58,6 +59,11 @@ class Core:
 
         module.attach(publish=module_publish, subscribe=module_subscribe, add_task=module_add_task)
         module.boot()
+
+        def raise_exception(handler: AnyEventHandler = None, types: EventTypes = All) -> None:
+            raise ModuleSubscribedAfterBoot(module=module)
+
+        module.attach(subscribe=raise_exception)
 
     def boot(self) -> None:
         self.loop = asyncio.get_event_loop()

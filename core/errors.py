@@ -140,3 +140,9 @@ You cannot boot your module directly (like: %(class)s.boot()).
 It must instead be added to the AI Core, which is boots the modules for you. 
 """ % {'class': module.__class__.__name__}
       ))
+
+
+class ModuleSubscribedAfterBoot(ModuleError):
+  def __init__(self, module) -> None:
+    super().__init__(f'Module {module.__class__.__name__} subscribed to events after booting.\n')
+    pass

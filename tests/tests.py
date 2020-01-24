@@ -8,7 +8,7 @@ from jsonpickle import Pickler
 
 from core.core import Core
 from core.errors import CoreNotBootedError, ModuleError, ModulePublishedBadEventError, ModuleSubscribedToNonClassError, \
-    ModuleSubscribedToNonEventClassError
+    ModuleSubscribedToNonEventClassError, ModuleSubscribedAfterBoot
 from core.events import BaseEvent
 from core.messaging import Metadata
 from modules.BaseModule import BaseModule
@@ -245,3 +245,18 @@ class CoreTests(unittest.TestCase):
         ai.boot()
 
         self.assertEqual(['done'], e)
+
+    def test_module_should_not_subscribe_after_boot(self):
+        class ModuleSubscribingAfterBoot(BaseModule):
+            def boot(self) -> None:
+                self.subscribe(self.handle, EventTypeA)
+
+            def handle(self, event: EventTypeA) -> None:
+                self.subscribe(lambda event: None, EventTypeB)
+
+        ai = Core()
+        ai.add_module(ModuleSubscribingAfterBoot())
+        ai.boot()
+
+        self.assertRaises(ModuleSubscribedAfterBoot, lambda: ai.publish(EventTypeA('foobar')))
+

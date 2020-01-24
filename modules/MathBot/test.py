@@ -1,7 +1,10 @@
+from typing import List, Any
 from unittest import TestCase
 
-from core.events import TextInput
-from modules.MathBot.module import MathBot
+from core.core import Core
+from core.events import TextInput, BaseEvent, TextOutput
+from modules.BaseModule import BaseModule
+from modules.MathBot.module import MathBot, MathParsed, Addition, Constant
 
 
 class TestMathBot(TestCase):
@@ -45,3 +48,34 @@ class TestMathBot(TestCase):
             'The result is: nan',
             self.run_bot('This is not a calculation + it contains a plus sign')
         )
+
+    def test_detect_expressions_from_text_input(self):
+        bot = MathBot()
+        events = []
+        setattr(bot, 'publish', lambda event: events.append(event))
+
+        bot.handle_text(TextInput('10+2'))
+
+        self.assertEqual([MathParsed(Addition(Constant(10), Constant(2)))], events)
+
+    def test_output_expression_result(self):
+        class TestHelperBot(BaseModule):
+            events: List[BaseEvent]
+
+            def boot(self) -> None:
+                self.events = []
+                self.subscribe(lambda event: self.events.append(event))
+
+        helper = TestHelperBot()
+        bot = MathBot()
+
+        ai = Core()
+        ai.add_module(bot)
+        ai.add_module(helper)
+        ai.boot()
+        ai.publish(TextInput('10+2'))
+
+        self.assertIn(MathParsed(Addition(Constant(10), Constant(2))), helper.events)
+        self.assertIn(TextOutput('The result is: 12.0'), helper.events)
+
+
