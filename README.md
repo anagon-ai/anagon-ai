@@ -32,14 +32,13 @@ Open source modular AI for everyone.
 
 - Easy to customize for end-user
 - Privacy focused
-  - end-user has control over which data modules can access
-  - you can run the AI on your own server if you want to, or a provider of choice
+  - End-user has control over which data modules can access
+  - Uou can run the AI on your own server if you want to, or a provider of choice
 - Developer accessibility
-    - easy to understand how the AI works
-    - easy to create new modules
-    - fun to join the community
-    - good documentation
-    - possible to write in your programming language of choice
+    - Easy to understand how the AI works
+    - Easy to create new modules
+    - Fun to join the community
+    - Good documentation
 - Modular
 
 
@@ -49,9 +48,9 @@ Open source modular AI for everyone.
 
 ## :muscle: How to contribute
 
-- clone the repo
-- create your own module: [Modules](docs/modules.md)
-- pull request :-D
+- Clone the repo
+- Create your own module: [Modules](docs/modules.md)
+- Make a pull request :-D
 
 
 ## :busts_in_silhouette: Community
@@ -59,6 +58,5 @@ Open source modular AI for everyone.
 Please join us here!
 
 - Twitch: [AnagonLive](https://twitch.tv/anagonlive)
-    - Thursdays &mdash; Afternoon (USA/CA) / Evening (Brussels)
-    - Sundays &mdash; Afternoon (USA/CA) / Evening (Brussels)
+    - Schedule to be determined
 - Discord: [AnagonLive](https://discord.gg/saYw4Bu)
